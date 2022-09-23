@@ -4,22 +4,33 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --watch src server_build/bundle.js",
+    "build:server": "webpack build --config ./webpack.server.js --watch",
     "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.19.1",
+    "@babel/preset-env": "^7.19.1",
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
+    "@types/express": "^4.17.14",
+    "@types/node": "^18.7.18",
     "@types/react": "^18.0.21",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
+    "babel-loader": "^8.2.5",
     "eslint": "^8.23.1",
     "eslint-plugin-react": "^7.31.8",
     "husky": "^8.0.1",
-    "typescript": "^4.8.3"
+    "nodemon": "^2.0.20",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.3",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-merge": "^5.8.0"
   },
   "dependencies": {
     "express": "^4.18.1",
