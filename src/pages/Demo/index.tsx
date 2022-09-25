@@ -1,7 +1,20 @@
-import { FC, Fragment } from 'react'
+import axios from 'axios'
+import { FC, Fragment, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 
 const Demo: FC = () => {
+  const [content, setContent] = useState('')
+
+  useEffect(() => {
+    axios
+      .post('api/get-demo-data', {
+        content: 'demo页面的内容',
+      })
+      .then(res => {
+        setContent(res.data?.data?.content)
+      })
+  }, [])
+
   return (
     <Fragment>
       <Helmet>
@@ -9,7 +22,7 @@ const Demo: FC = () => {
         <meta name="description" content="服务端渲染 -- HOME"></meta>
       </Helmet>
 
-      <div>这是一个Demo页面</div>
+      <div>{content}</div>
     </Fragment>
   )
 }

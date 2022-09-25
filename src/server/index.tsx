@@ -1,4 +1,5 @@
 import router from '@/router'
+import bodyParser from 'body-parser'
 import childProcess from 'child_process'
 import express from 'express'
 import path from 'path'
@@ -12,6 +13,18 @@ const app = express()
 // 将项目根目录下的 client_build 作为静态资源服务器的根目录
 // 这样在注入客户端脚本的时候就能通过 src="/index.js" 访问到客户端打包结果
 app.use(express.static(path.resolve(process.cwd(), 'client_build')))
+
+// 解析请求体的 body
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+
+// api: 获取 demo data
+app.post('/api/get-demo-data', (req, resp) => {
+  resp.send({
+    code: 0,
+    data: req.body,
+  })
+})
 
 app.get('*', (req, resp) => {
   const content = renderToString(
