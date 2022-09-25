@@ -13,7 +13,7 @@
 > “同构”，是服务器端渲染的核心概念
 > 同一套 React 代码在服务器端渲染一遍，然后在客户端再执行一遍。
 > 服务端负责静态 dom 的拼接，而客户端负责事件的绑定
-> 同构的应用场景不仅是模板页面渲染，还包括路由，数据的请求。
+> 同构的应用场景不仅是模板页面渲染，还包括路由、`<head>` 标签的修改、数据的请求等。
 > 可以理解成，服务器端渲染都是基于同构去展开的
 
 通过`react-dom/client`提供的`hydrateRoot`则可以很好地实现这个需求，官方对`hydrateRoot`的介绍如下：
@@ -22,7 +22,7 @@
 
 也就是说它专门用来将`tsx`元素同构到服务端的，只会处理`tsx`中的事件相关的部分，而不会去管`DOM`的渲染，`DOM`的渲染我们已经交给服务端的`renderToString`去处理了
 
-# 同构的应用
+# 同构的应用场景
 
 ## 1. 模板页面渲染
 
@@ -75,4 +75,52 @@ const Client = (): JSX.Element => {
 }
 
 hydrateRoot(document.getElementById('root') as Document | Element, <Client />)
+```
+
+## 3. 修改 <head> 标签
+
+客户端页面中编写好相关`<head>`标签内容后，服务端渲染时需要获取到这部分信息，然后拼接到返回的模板中
+
+由于客户端不同页面可能有不同的`<head>`配置，所以这里也需要应用同构，需要能够在服务端中动态获取到客户端页面的`<head>`标签内容进行展示
+
+这一需求可以用`react-helmet`库去实现
+
+页面组件中添加`<Helmet>`元素
+
+```tsx
+const Demo: FC = () => {
+  return (
+    <Fragment>
+      <Helmet>
+        <title>简易的服务端渲染 -- DEMO</title>
+        <meta name="description" content="服务端渲染 -- HOME"></meta>
+      </Helmet>
+
+      <div>这是一个Demo页面</div>
+    </Fragment>
+  )
+}
+```
+
+服务器端通过`Helmet.renderStatic()`与客户端同构
+
+```tsx
+app.get('*', (req, resp) => {
+  // ...
+
+  const helmet = Helmet.renderStatic()
+
+  resp.send(`
+    <html>
+      <head>
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+      </head>
+      <body>
+        <div id="root">${content}</div>
+        <script src="/index.js"></script>
+      </body>
+    </html>
+  `)
+})
 ```

@@ -1,10 +1,11 @@
+import router from '@/router'
 import childProcess from 'child_process'
 import express from 'express'
 import path from 'path'
 import { renderToString } from 'react-dom/server'
+import { Helmet } from 'react-helmet'
+import { Route, Routes } from 'react-router-dom'
 import { StaticRouter } from 'react-router-dom/server'
-import { Routes, Route } from 'react-router-dom'
-import router from '@/router'
 
 const app = express()
 
@@ -23,8 +24,14 @@ app.get('*', (req, resp) => {
     </StaticRouter>,
   )
 
+  const helmet = Helmet.renderStatic()
+
   resp.send(`
     <html>
+      <head>
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+      </head>
       <body>
         <div id="root">${content}</div>
         <script src="/index.js"></script>
