@@ -1,4 +1,17 @@
+import router from '@/router'
 import { hydrateRoot } from 'react-dom/client'
-import Home from '@/pages/Home'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
-hydrateRoot(document.getElementById('root') as Document | Element, <Home />)
+const Client = (): JSX.Element => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {router.map((item, idx) => (
+          <Route {...item} key={idx} />
+        ))}
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+hydrateRoot(document.getElementById('root') as Document | Element, <Client />)
