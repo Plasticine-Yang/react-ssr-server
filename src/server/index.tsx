@@ -7,7 +7,7 @@ import path from 'path'
 import { renderToString } from 'react-dom/server'
 import { Helmet } from 'react-helmet'
 import { Provider } from 'react-redux'
-import { Route, Routes } from 'react-router-dom'
+import { matchRoutes, Route, RouteObject, Routes } from 'react-router-dom'
 import { StaticRouter } from 'react-router-dom/server'
 
 const app = express()
@@ -29,21 +29,40 @@ app.post('/api/get-demo-data', (req, resp) => {
 })
 
 app.get('*', (req, resp) => {
-  const content = renderToString(
-    <Provider store={serverStore}>
-      <StaticRouter location={req.path}>
-        <Routes>
-          {router.map((item, idx) => (
-            <Route {...item} key={idx} />
-          ))}
-        </Routes>
-      </StaticRouter>
-    </Provider>,
-  )
+  // 通过路由注入 state 初始数据
+  const routeMap = new Map<string, () => Promise<any>>()
+  router.forEach(item => {
+    if (item.path && item.loadData) {
+      routeMap.set(item.path, item.loadData(serverStore))
+    }
+  })
 
-  const helmet = Helmet.renderStatic()
+  // 匹配当前路由的 routes
+  const matchedRoutes = matchRoutes(router as RouteObject[], req.path)
 
-  resp.send(`
+  const promises: Array<() => Promise<any>> = []
+  matchedRoutes?.forEach(item => {
+    if (routeMap.has(item.pathname)) {
+      promises.push(routeMap.get(item.pathname)!)
+    }
+  })
+
+  Promise.all(promises).then(() => {
+    const content = renderToString(
+      <Provider store={serverStore}>
+        <StaticRouter location={req.path}>
+          <Routes>
+            {router.map((item, idx) => (
+              <Route {...item} key={idx} />
+            ))}
+          </Routes>
+        </StaticRouter>
+      </Provider>,
+    )
+
+    const helmet = Helmet.renderStatic()
+
+    resp.send(`
     <html>
       <head>
         ${helmet.title.toString()}
@@ -51,10 +70,16 @@ app.get('*', (req, resp) => {
       </head>
       <body>
         <div id="root">${content}</div>
+        <script>
+          window.context = {
+            state: ${JSON.stringify(serverStore.getState())}
+          }
+        </script>
         <script src="/index.js"></script>
       </body>
     </html>
   `)
+  })
 })
 
 app.listen(3000, () => {
