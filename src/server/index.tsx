@@ -1,10 +1,12 @@
 import router from '@/router'
+import { serverStore } from '@/store'
 import bodyParser from 'body-parser'
 import childProcess from 'child_process'
 import express from 'express'
 import path from 'path'
 import { renderToString } from 'react-dom/server'
 import { Helmet } from 'react-helmet'
+import { Provider } from 'react-redux'
 import { Route, Routes } from 'react-router-dom'
 import { StaticRouter } from 'react-router-dom/server'
 
@@ -28,13 +30,15 @@ app.post('/api/get-demo-data', (req, resp) => {
 
 app.get('*', (req, resp) => {
   const content = renderToString(
-    <StaticRouter location={req.path}>
-      <Routes>
-        {router.map((item, idx) => (
-          <Route {...item} key={idx} />
-        ))}
-      </Routes>
-    </StaticRouter>,
+    <Provider store={serverStore}>
+      <StaticRouter location={req.path}>
+        <Routes>
+          {router.map((item, idx) => (
+            <Route {...item} key={idx} />
+          ))}
+        </Routes>
+      </StaticRouter>
+    </Provider>,
   )
 
   const helmet = Helmet.renderStatic()

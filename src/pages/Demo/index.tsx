@@ -1,20 +1,14 @@
-import axios from 'axios'
-import { FC, Fragment, useEffect, useState } from 'react'
+import { FC, Fragment } from 'react'
 import { Helmet } from 'react-helmet'
+import { connect } from 'react-redux'
+import { getDemoData } from './store/demoReducer'
 
-const Demo: FC = () => {
-  const [content, setContent] = useState('')
+interface IProps {
+  content?: string
+  getDemoData?: (data: string) => void
+}
 
-  useEffect(() => {
-    axios
-      .post('api/get-demo-data', {
-        content: 'demo页面的内容',
-      })
-      .then(res => {
-        setContent(res.data?.data?.content)
-      })
-  }, [])
-
+const Demo: FC<IProps> = props => {
   return (
     <Fragment>
       <Helmet>
@@ -22,9 +16,37 @@ const Demo: FC = () => {
         <meta name="description" content="服务端渲染 -- HOME"></meta>
       </Helmet>
 
-      <div>{content}</div>
+      <div>
+        <h1>{props.content}</h1>
+        <button
+          onClick={(): void => {
+            props.getDemoData && props.getDemoData('刷新过后的数据')
+          }}
+        >
+          刷新
+        </button>
+      </div>
     </Fragment>
   )
 }
 
-export default Demo
+// 将 demoStore 的 state 和异步请求方法注入到 Demo 组件中
+// 通过 mapStateToProps 将 state 注入到 Demo 组件的 Props 中
+// 通过 mapDispatchToProps 将异步请求方法注入到 Demo 组件的 Props 中
+const mapStateToProps = (state: any) => {
+  return {
+    content: state?.demo?.content,
+  }
+}
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    getDemoData: (data: string) => {
+      dispatch(getDemoData(data))
+    },
+  }
+}
+
+const storeDemo: any = connect(mapStateToProps, mapDispatchToProps)(Demo)
+
+export default storeDemo
