@@ -124,3 +124,80 @@ app.get('*', (req, resp) => {
   `)
 })
 ```
+
+## 4. 异步数据请求
+
+1. 首先要定义全局的`store`，分别为客户端和服务端都建立一份相同的`store`
+
+```ts
+const clientStore = configureStore({
+  reducer: {
+    demo: demoReducer.reducer,
+  },
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(thunk),
+})
+
+const serverStore = configureStore({
+  reducer: {
+    demo: demoReducer.reducer,
+  },
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(thunk),
+})
+```
+
+2. 同时在客户端和服务端通过`<Provider>`将`store`注入到页面中
+
+```tsx
+// 客户端
+const Client = (): JSX.Element => {
+  return (
+    <Provider store={clientStore}>
+      <BrowserRouter>
+        <Routes>
+          {router.map((item, idx) => (
+            <Route {...item} key={idx} />
+          ))}
+        </Routes>
+      </BrowserRouter>
+    </Provider>
+  )
+}
+
+// 服务端
+const content = renderToString(
+  <Provider store={serverStore}>
+    <StaticRouter location={req.path}>
+      <Routes>
+        {router.map((item, idx) => (
+          <Route {...item} key={idx} />
+        ))}
+      </Routes>
+    </StaticRouter>
+  </Provider>,
+)
+```
+
+3. 注入后页面组件就能够获取到`store`了，此时通过`react-redux`的`connect`将`store`与组件连接起来，使得组件内可以访问`store`的数据和方法
+
+```tsx
+// 将 demoStore 的 state 和异步请求方法注入到 Demo 组件中
+// 通过 mapStateToProps 将 state 注入到 Demo 组件的 Props 中
+// 通过 mapDispatchToProps 将异步请求方法注入到 Demo 组件的 Props 中
+const mapStateToProps = (state: any) => {
+  return {
+    content: state?.demo?.content,
+  }
+}
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {
+    getDemoData: (data: string) => {
+      dispatch(getDemoData(data))
+    },
+  }
+}
+
+const storeDemo: any = connect(mapStateToProps, mapDispatchToProps)(Demo)
+
+export default storeDemo
+```
