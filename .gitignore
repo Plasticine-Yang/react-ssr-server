@@ -1,1 +1,5 @@
 node_modules
+
+# 忽略打包目录
+client_build
+server_build
