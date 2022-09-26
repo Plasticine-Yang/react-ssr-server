@@ -4,18 +4,11 @@ import axios from 'axios'
 const getDemoData = createAsyncThunk(
   'demo/getData',
   async (initialData: string) => {
-    let resData: any = ''
-    try {
-      const res = await axios.post('http://localhost:3000/api/get-demo-data', {
-        content: initialData,
-      })
-      console.log(res)
-      resData = res.data?.data?.content
-    } catch (e) {
-      console.error(`fuck: ${e}`)
-    }
+    const res = await axios.post('http://localhost:3000/api/get-demo-data', {
+      content: initialData,
+    })
 
-    return resData
+    return res.data?.data?.content
   },
 )
 
